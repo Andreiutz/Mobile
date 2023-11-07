@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { RouteComponentProps } from 'react-router';
 import {
     IonContent,
@@ -15,7 +15,7 @@ import {
     IonSearchbar,
     IonInfiniteScroll,
     IonInfiniteScrollContent,
-    IonRow,
+    CreateAnimation,
     IonCheckbox
 } from '@ionic/react';
 import { add } from 'ionicons/icons';
@@ -29,6 +29,8 @@ import {CarOfferProps} from "./CarOfferProps";
 const log = getLogger('OfferList');
 
 const CarOfferList: React.FC<RouteComponentProps> = ({history}) => {
+    const animationRef = useRef<CreateAnimation>(null);
+    useEffect(simpleAnimationReact, [animationRef.current]);
     const {offers, fetching, fetchingError} = useContext(CarOfferContext);
     const [searchbar, setSearchbar] = useState<string>('');
     const [justAvailableCheckBox, setJustAvailableCheckBox] = useState<boolean>(false);
@@ -96,6 +98,12 @@ const CarOfferList: React.FC<RouteComponentProps> = ({history}) => {
         }
     }
 
+    function simpleAnimationReact() {
+        if (animationRef.current !== null) {
+            animationRef.current.animation.play();
+        }
+    }
+
     function searchNext($event: CustomEvent<void>) {
         fetchData(false);
         ($event.target as HTMLIonInfiniteScrollElement).complete();
@@ -109,6 +117,17 @@ const CarOfferList: React.FC<RouteComponentProps> = ({history}) => {
                     <IonTitle>Car Offers</IonTitle>
                     <NetworkStatus/>
                     <IonButtons slot="end">
+                        <CreateAnimation
+                            ref={animationRef}
+                            duration={5000}
+                            fromTo={{
+                                property: 'transform',
+                                fromValue: 'rotate(0)',
+                                toValue: 'rotate(360deg)',
+                            }}
+                            easing="linear">
+                            <p>Best Prices!!</p>
+                        </CreateAnimation>
                         <IonButton onClick={e => {
                             logout && logout()
                         }}>Logout</IonButton>
@@ -132,9 +151,9 @@ const CarOfferList: React.FC<RouteComponentProps> = ({history}) => {
                 </IonSearchbar>
                 {offers && (
                     <IonList>
-                        {shownItems.map(({_id, make, model, year, description, isAvailable, date}) =>
+                        {shownItems.map(({_id, make, model, year, description, isAvailable, date, photoPath, latitude, longitude}) =>
                             <CarOffer key={_id} _id={_id} make={make} model={model} year={year} description={description}
-                                      isAvailable={isAvailable} date={date}
+                                      isAvailable={isAvailable} date={date} photoPath={photoPath} latitude={latitude} longitude={longitude}
                                       onEdit={id => history.push(`/offer/${id}`)} />
                         )}
                         <IonInfiniteScroll threshold="100px" disabled={disableInfiniteScroll}

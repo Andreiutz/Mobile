@@ -7,4 +7,6 @@ export interface CarOfferProps {
     date?: Date;
     isAvailable: boolean;
     photoPath: string;
+    latitude: number;
+    longitude: number;
 }

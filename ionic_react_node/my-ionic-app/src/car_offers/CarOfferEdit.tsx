@@ -15,7 +15,10 @@ import {
     IonImg,
     IonFab,
     IonFabButton,
-    IonIcon
+    IonIcon,
+    IonList,
+    IonLabel,
+
 } from '@ionic/react';
 import {getLogger} from "../core";
 import {CarOfferContext} from "./CarOfferProvider";
@@ -23,6 +26,8 @@ import { RouteComponentProps } from 'react-router';
 import {CarOfferProps} from "./CarOfferProps";
 import {usePhotos} from "../pages/usePhotos";
 import { camera } from 'ionicons/icons';
+import MyMap from "../maps/MyMap";
+import {useMyLocation} from "../pages/useMyLocation";
 
 const log = getLogger('CarOfferEdit');
 
@@ -32,6 +37,7 @@ interface CarOfferEditProps extends RouteComponentProps<{
 
 const CarOfferEdit: React.FC<CarOfferEditProps> = ({history, match}) => {
     const {offers, saving, savingError, saveOffer} = useContext(CarOfferContext);
+    const myLocation = useMyLocation()
     const {photos, takePhoto, deletePhoto} = usePhotos();
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
@@ -39,6 +45,8 @@ const CarOfferEdit: React.FC<CarOfferEditProps> = ({history, match}) => {
     const [description, setDescription] = useState('');
     const [isAvailable, setIsAvailable] = useState(false);
     const [photoPath, setPhotoPath] = useState("");
+    const [latitude, setLatitude] = useState(myLocation.position? myLocation.position.coords.latitude : 46.77294256474928);
+    const [longitude, setLongitude] = useState(myLocation.position? myLocation.position.coords.longitude : 23.620521050728307);
     const [offer, setOffer] = useState<CarOfferProps>();
     useEffect(() => {
         log('useEffect');
@@ -51,7 +59,9 @@ const CarOfferEdit: React.FC<CarOfferEditProps> = ({history, match}) => {
             setYear(offer.year);
             setDescription(offer.description);
             setIsAvailable(offer.isAvailable);
-            setPhotoPath(offer.photoPath)
+            setPhotoPath(offer.photoPath);
+            setLongitude(offer.longitude);
+            setLatitude(offer.latitude);
         }
     }, [match.params.id, offers]);
     const [photoTaken, setPhotoTaken] = useState(false);
@@ -61,9 +71,9 @@ const CarOfferEdit: React.FC<CarOfferEditProps> = ({history, match}) => {
         }
     }, [photoTaken, photos])
     const handleSave = useCallback(() => {
-        const editedOffer = offer ? {...offer, make, model, year, description, isAvailable, photoPath} : {make, model, year, description, isAvailable, photoPath};
+        const editedOffer = offer ? {...offer, make, model, year, description, isAvailable, photoPath, latitude, longitude} : {make, model, year, description, isAvailable, photoPath, latitude, longitude};
         saveOffer && saveOffer(editedOffer).then(() => history.goBack());
-    }, [offer, saveOffer, make, model, year, description, isAvailable, photoPath, history]);
+    }, [offer, saveOffer, make, model, year, description, isAvailable, photoPath, history, latitude, longitude]);
     log('render');
     return (
         <IonPage>
@@ -97,6 +107,30 @@ const CarOfferEdit: React.FC<CarOfferEditProps> = ({history, match}) => {
                         <IonIcon icon={camera} />
                     </IonFabButton>
                 </IonFab>
+
+                <IonList>
+                    <IonItem>
+                        <IonLabel color="dark">Location of the offer:</IonLabel>
+                    </IonItem>
+                    <IonItem>
+                        <IonLabel color="dark">Latitude: {latitude}</IonLabel>
+                    </IonItem>
+                    <IonItem>
+                        <IonLabel color="dark">Longitude: {longitude}</IonLabel>
+                    </IonItem>
+                    <IonItem>
+                        <MyMap
+                            lat={latitude}
+                            lng={longitude}
+                            onMapClick={ev => {
+                                console.log(ev);
+                                setLatitude(ev.latitude);
+                                setLongitude(ev.longitude);
+                            }}
+                            onMarkerClick={ev => console.log(ev)}
+                        />
+                    </IonItem>
+                </IonList>
                 <IonLoading isOpen={saving} />
                 {savingError && (
                     <div>{savingError.message || 'Failed to save offer'}</div>
