@@ -73,9 +73,10 @@ const createOffer = async (ctx, offer, response) => {
     try {
         const userId = ctx.state.user._id;
         offer.userId = userId;
-        response.body = await offerStore.insert(offer);
+        const newOffer = await offerStore.insert(offer);
+        response.body = newOffer;
         response.status = 201; // created
-        broadcast(userId, { type: 'created', payload: offer });
+        broadcast(userId, { type: 'created', payload: newOffer });
     } catch (err) {
         response.body = { message: err.message };
         response.status = 400; // bad request
