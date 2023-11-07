@@ -11,22 +11,14 @@ const NetworkStatus: React.FC = () => {
             {
                 networkStatus.connected &&
                 <IonItem>
-                    Connected
+                    Online
                 </IonItem>
             }
             {
                 !networkStatus.connected &&
                 <IonItem>
-                    Not Connected
+                    Offline
                 </IonItem>
-            }
-            {
-                appState.isActive &&
-                <IonItem>Active</IonItem>
-            }
-            {
-                !appState.isActive &&
-                <IonItem>Not active</IonItem>
             }
         </div>
     )

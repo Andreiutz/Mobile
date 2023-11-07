@@ -2,8 +2,17 @@ import React, { useContext, useCallback, useEffect, useReducer } from 'react';
 import PropTypes from 'prop-types';
 import { getLogger } from '../core';
 import {CarOfferProps} from "./CarOfferProps";
-import {postOffer, getOffers, newWebSocket, updateOffer} from "./CarOfferApi";
+import {
+    postOfferOnline,
+    getOffers,
+    newWebSocket,
+    updateOfferOnline,
+    trySaveLocalStorage,
+    updateOffer, postOffer
+} from "./CarOfferApi";
 import {AuthContext} from "../auth";
+import { Preferences } from '@capacitor/preferences';
+import {useNetwork} from "../status/useNetwork";
 
 const log = getLogger('CarOfferProvider');
 
@@ -49,13 +58,15 @@ const reducer: (state: CarOffersState, action: ActionProps) => CarOffersState =
             case SAVE_OFFER_SUCCEEDED:
                 const offers = [...(state.offers || [])];
                 const offer = payload.offer;
-                const index = offers.findIndex(it => it._id === offer._id);
-                if (index === -1) {
-                    offers.splice(0, 0, offer);
-                } else {
-                    offers[index] = offer;
+                if (offer._id) {
+                    const index = offers.findIndex(it => it._id === offer._id);
+                    if (index === -1) {
+                        offers.splice(0, 0, offer);
+                    } else {
+                        offers[index] = offer;
+                    }
                 }
-                return {...state, offers, saving: false};
+                return {...state, offers: offers, saving: false};
             case SAVE_OFFER_FAILED:
                 return {...state, savingError: payload.error, saving: false};
             default:
@@ -70,14 +81,23 @@ interface CarOfferProviderProps {
 }
 
 export const CarOfferProvider: React.FC<CarOfferProviderProps> = ({children}) => {
-    const { token } = useContext(AuthContext);
+    const { token, isAuthenticated } = useContext(AuthContext);
     const [state, dispatch] = useReducer(reducer, initialState);
     const {offers, fetching, fetchingError, saving, savingError } = state;
+    const {networkStatus} = useNetwork();
     useEffect(getOffersEffect, [token]);
     useEffect(wsEffect, [token]);
+    useEffect(() => {
+        if (networkStatus.connected) {
+            trySaveLocalStorage().catch(e => {
+                log('Did not manage to save local storage', e)
+            })
+        }
+    }, [networkStatus.connected, isAuthenticated, savingError])
+
     const saveOffer = useCallback<SaveOfferFn>(saveOfferCallback, [token]);
     const value = {offers, fetching, fetchingError, saving, saveOffer};
-    log('returns');
+    log('returns', value.offers);
     return (
         <CarOfferContext.Provider value={value}>
             {children}
@@ -135,10 +155,11 @@ export const CarOfferProvider: React.FC<CarOfferProviderProps> = ({children}) =>
 
     async function saveOfferCallback(offer: CarOfferProps) {
         try {
-            // console.log(offer)
+            log('saveOffer started', offer)
             dispatch({type: SAVE_OFFER_STARTED});
-            const savedOffer = await (offer._id ? updateOffer(token, offer) : postOffer(token, offer));
-            log('saveOffer succeeded');
+            const savedOffer = await (offer._id ? updateOffer(token, offer, networkStatus.connected) : postOffer(token, offer, networkStatus.connected));
+            console.log('saved offer: ', savedOffer)
+            log('saveOffer succeeded', savedOffer);
             dispatch({type: SAVE_OFFER_SUCCEEDED, payload: {offer: savedOffer}});
         } catch (error) {
             log('saveOffer failed');

@@ -6,4 +6,5 @@ export interface CarOfferProps {
     description: string;
     date?: Date;
     isAvailable: boolean;
+    photoPath: string;
 }

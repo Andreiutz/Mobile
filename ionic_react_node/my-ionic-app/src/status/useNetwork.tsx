@@ -24,7 +24,6 @@ export const useNetwork = () => {
         }
 
         async function handleNetworkStatusChange(status: ConnectionStatus) {
-            console.log('useNetwork - status change', status);
             if (!canceled) {
                 setNetworkStatus(status);
             }
