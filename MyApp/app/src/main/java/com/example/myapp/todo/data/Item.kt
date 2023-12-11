@@ -16,4 +16,6 @@ data class Item(
     val description: String = "",
     val isAvailable: Boolean = false,
     val date: String = "",
+    val latitude: Double = 46.0,
+    val longitude: Double = 23.0
 )

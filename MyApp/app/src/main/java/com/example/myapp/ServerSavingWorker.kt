@@ -20,11 +20,11 @@ class ServerSavingWorker(
         val description = workerParams.inputData.getString("description")!!
         val isAvailable = workerParams.inputData.getBoolean("isAvailable", false)
         val date = workerParams.inputData.getString("date")!!
-        //val lat = workerParams.inputData.getDouble("lat", 0.0);
-        //val long = workerParams.inputData.getDouble("long", 0.0);
+        val latitude = workerParams.inputData.getDouble("latitude", 0.0);
+        val longitude = workerParams.inputData.getDouble("longitude", 0.0);
 
         val item = Item (
-            id, make, model, year, description, isAvailable, date
+            id, make, model, year, description, isAvailable, date, latitude, longitude
         )
 
         if(isSaving) {

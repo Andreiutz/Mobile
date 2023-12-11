@@ -61,12 +61,13 @@ class ItemViewModel(private val itemId: String?, private val itemRepository: Ite
     }
 
 
-    fun saveOrUpdateItem(make: String, model: String, year: Int, description: String, isAvailable: Boolean) {
+    fun saveOrUpdateItem(make: String, model: String, year: Int, description: String, isAvailable: Boolean, latitude: Double, longitude: Double) {
         viewModelScope.launch {
             Log.d(TAG, "saveOrUpdateItem...");
             try {
                 uiState = uiState.copy(isSaving = true, savingError = null)
-                val item = uiState.item?.copy(make = make, model = model, year = year, description = description, isAvailable = isAvailable)
+                val item = uiState.item?.copy(make = make, model = model, year = year, description = description,
+                    isAvailable = isAvailable, latitude = latitude, longitude = longitude)
 
                 val constraints = Constraints.Builder()
                     .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -91,6 +92,8 @@ class ItemViewModel(private val itemId: String?, private val itemRepository: Ite
                         .putString("description", item.description)
                         .putBoolean("isAvailable", item.isAvailable)
                         .putString("date", item.date)
+                        .putDouble("latitude", item.latitude)
+                        .putDouble("longitude", item.longitude)
                         .build()
 
                 val worker = OneTimeWorkRequest.Builder(ServerSavingWorker::class.java)

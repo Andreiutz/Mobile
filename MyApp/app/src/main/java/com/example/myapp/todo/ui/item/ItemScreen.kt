@@ -1,12 +1,15 @@
 package com.example.myapp.todo.ui
 
 import android.util.Log
-import android.widget.NumberPicker
+import androidx.compose.material.icons.Icons
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +37,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapp.R
 import com.example.myapp.core.Result
 import com.example.myapp.todo.ui.item.ItemViewModel
+import com.example.myapp.utils.MyMap
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +53,14 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
     var year by rememberSaveable { mutableStateOf(itemUiState.item?.year ?: 0) }
     var description by rememberSaveable { mutableStateOf(itemUiState.item?.description ?: "") }
     var isAvailable by rememberSaveable { mutableStateOf(itemUiState.item?.isAvailable ?: false) }
+    var latitude by rememberSaveable { mutableStateOf(itemUiState.item?.latitude ?: 47.62) }
+    var longitude by rememberSaveable { mutableStateOf(itemUiState.item?.longitude ?: 47.62) }
+
+    val markerState = rememberMarkerState(position = LatLng(latitude, longitude))
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(markerState.position, 10f)
+    }
+
     Log.d("ItemScreen", "recompose, text = $make")
 
     LaunchedEffect(itemUiState.savingCompleted) {
@@ -65,7 +82,11 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
             year = itemUiState.item.year
             description = itemUiState.item.description
             isAvailable = itemUiState.item.isAvailable
+            latitude = itemUiState.item.latitude
+            longitude = itemUiState.item.longitude
             textInitialized = true
+            markerState.position = LatLng(latitude, longitude)
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(markerState.position, 1f)
         }
     }
 
@@ -76,7 +97,7 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
                 actions = {
                     Button(onClick = {
                         Log.d("ItemScreen", "save item text = $make");
-                        itemViewModel.saveOrUpdateItem(make, model, year, description, isAvailable)
+                        itemViewModel.saveOrUpdateItem(make, model, year, description, isAvailable, latitude, longitude)
                     }) { Text("Save") }
                 }
             )
@@ -134,6 +155,28 @@ fun ItemScreen(itemId: String?, onClose: () -> Unit) {
                     }
                 }
             }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column {
+                    Text("Location:  ")
+                    Text(
+                        text = "latitude: ${latitude} , longitude: ${longitude}"
+                    )
+                    MyMap(
+                        lat = latitude,
+                        long = longitude,
+                        modifier = Modifier.fillMaxSize(),
+                        onClick = { lat, long ->
+                            latitude = lat
+                            longitude = long
+                            // Update marker and camera position state directly
+                            markerState.position = LatLng(lat, long)
+                            cameraPositionState.position = CameraPosition.fromLatLngZoom(markerState.position, 10f)
+                        }
+                    )
+
+                }
+            }
+
             if (itemUiState.isSaving) {
                 Column(
                     Modifier.fillMaxWidth(),

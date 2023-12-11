@@ -1,5 +1,6 @@
 package com.example.myapp
 
+import android.Manifest
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -11,8 +12,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.myapp.core.TAG
 import com.example.myapp.ui.theme.MyAppTheme
 import kotlinx.coroutines.launch
+import com.example.myapp.utils.Permissions
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
-public class MainActivity : ComponentActivity() {
+
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -38,12 +42,22 @@ public class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MyApp(content: @Composable () -> Unit) {
     Log.d("MyApp", "recompose")
-    MyAppTheme {
-        Surface {
-            content()
+    Permissions(
+        permissions = listOf(
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ),
+        rationaleText = "Please allow app to use location (coarse or fine)",
+        dismissedText = "O noes! No location provider allowed!"
+    ) {
+        MyAppTheme {
+            androidx.compose.material.Surface {
+                content()
+            }
         }
     }
 }

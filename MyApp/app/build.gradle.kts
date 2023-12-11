@@ -81,10 +81,18 @@ dependencies {
     // Room
     implementation("androidx.room:room-runtime:2.6.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     ksp("androidx.room:room-compiler:2.6.0")
     implementation("androidx.room:room-ktx:2.6.0")
     // Data store
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Maps & location
+    implementation("com.google.accompanist:accompanist-permissions:0.23.1")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.maps.android:maps-compose:2.7.2")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("androidx.compose.material:material:1.5.4")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -93,4 +101,6 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+
 }
