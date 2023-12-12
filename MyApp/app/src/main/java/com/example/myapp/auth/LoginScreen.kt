@@ -27,6 +27,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapp.R
 import com.example.myapp.createNotificationChannel
 import com.example.myapp.showSimpleNotificationWithTapAction
+import com.example.myapp.utils.ProximitySensor
 import com.ilazar.myservices.util.ConnectivityManagerNetworkMonitor
 import kotlinx.coroutines.launch
 
@@ -94,6 +95,7 @@ fun LoginScreen(onClose: () -> Unit) {
                 .padding(24.dp)
         ) {
             MyNetworkStatus()
+            ProximitySensor()
             var username by remember { mutableStateOf("") }
             TextField(
                 label = { Text(text = "Username") },

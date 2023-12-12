@@ -3,31 +3,38 @@ package com.example.myapp.todo.ui.items
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.myapp.todo.data.Item
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 
 typealias OnItemFn = (id: String?) -> Unit
 
@@ -51,44 +58,64 @@ fun ItemList(itemList: List<Item>, onItemClick: OnItemFn, modifier: Modifier) {
 @Composable
 fun ItemDetail(item: Item, onItemClick: OnItemFn) {
 //    Log.d("ItemDetail", "recompose id = ${item.id}")
-    Row {
-        Card(
-            onClick = {
-                Log.d("Item clicked", "clicked ${item._id}")
-                onItemClick(item._id)
-            },
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFD0BCFF)),
-            border = BorderStroke(1.dp, Color.Black)
+    var isExpanded by remember { mutableStateOf(false) }
+    Surface (
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 2.dp,
+        onClick = { isExpanded = !isExpanded }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .animateContentSize()
         ) {
-            Column(modifier = Modifier.padding(5.dp)) {
-                Text(
-                    text = "${item.make} - ${item.model}",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+            Row {
+                Icon(imageVector = Icons.Default.Info , contentDescription = null)
+                Spacer(modifier = Modifier.width(16.dp))
+                androidx.compose.material.Text(
+                    text = "${item.make} ${item.model}",
+                    style = MaterialTheme.typography.body1
                 )
-                Text(
-                    text = "Year ${item.year}",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = if (item.isAvailable) "Available" else "Not available",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = item.description,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = "Date: ${formatDate(item.date)}",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            }
+            if (isExpanded) {
+                Row {
+                    Card(
+                        onClick = {
+                            Log.d("Item clicked", "clicked ${item._id}")
+                            onItemClick(item._id)
+                        },
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFD0BCFF)),
+                        border = BorderStroke(1.dp, Color.Black)
+                    ) {
+                        Column(modifier = Modifier.padding(5.dp)) {
+                            Text(
+                                text = "Year ${item.year}",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = if (item.isAvailable) "Available" else "Not available",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = item.description,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "Date: ${formatDate(item.date)}",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
             }
         }
     }
+
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -1,7 +1,18 @@
 package com.example.myapp.todo.ui.items
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
@@ -13,13 +24,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapp.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit, onLogout: () -> Unit) {
@@ -28,6 +47,16 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit, onLog
     val itemsUiState by itemsViewModel.uiState.collectAsStateWithLifecycle(
         initialValue = listOf()
     )
+    var isAdding by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    suspend fun showEditMessage() {
+        if (!isAdding) {
+            isAdding = true
+            delay(3000L)
+            isAdding = false
+            onAddItem()
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,7 +70,9 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit, onLog
             FloatingActionButton(
                 onClick = {
                     Log.d("ItemsScreen", "add")
-                    onAddItem()
+                    coroutineScope.launch {
+                        showEditMessage()
+                    }
                 },
             ) { Icon(Icons.Rounded.Add, "Add") }
         }
@@ -52,10 +83,38 @@ fun ItemsScreen(onItemClick: (id: String?) -> Unit, onAddItem: () -> Unit, onLog
             modifier = Modifier.padding(it)
         )
     }
+    EditMessage(shown = isAdding)
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun PreviewItemsScreen() {
     ItemsScreen(onItemClick = {}, onAddItem = {}, onLogout = {})
+}
+
+@Composable
+private fun EditMessage(shown: Boolean) {
+    AnimatedVisibility(
+        visible = shown,
+        enter = slideInVertically(
+            initialOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+        )
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colors.primary,
+            elevation = 4.dp
+        ) {
+            androidx.compose.material.Text(
+                text = "Prepare to add an offer",
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
 }
